@@ -1,3 +1,4 @@
+//Bad implementation of problem.
 fn main() {
     let mut s1 = String::from("hello world");
 
@@ -8,15 +9,13 @@ fn main() {
     // word still has the value 5 here, but there's no more string that
     // we could meaningfully use the value 5 with. word is now totally
 
-    let mut s2 = String::from("hello world!");
+    let s2 = String::from("hello world!");
 
     let word1 = first_word_slice(&s2);
 
     println!("{}", word1);
 
-    s2.clear();
-
-    println!("{}", word1);
+    //s2.clear(); //Now throws compile time
 }
 
 fn first_word(s: &String) -> usize {
@@ -34,10 +33,10 @@ fn first_word(s: &String) -> usize {
 fn first_word_slice(s: &String) -> &str {
     let bytes = s.as_bytes();
 
-    for(i, &item) in bytes.iter().enumerate() {
-	if item == b' ' {
-	    return &s[..i];
-	}
+    for (i, &item) in bytes.iter().enumerate() {
+        if item == b' ' {
+            return &s[..i];
+        }
     }
 
     &s[..]
