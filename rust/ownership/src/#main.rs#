@@ -1,0 +1,21 @@
+yfn main() {
+    let s1 = String::from("hello");
+    //Different from string literal. Has pointer (to heap), length and capacity on stack.
+    //Stored in heap, String type has pointer to heap
+
+    println!("{}", s1);
+
+    let s2 = s1;
+    //Move operaiton, since s2 has copied s1 pointer (and legth, capacity). s1 no longer valid.
+
+    //Would cause panic
+    //println!("{}", s1);
+    
+    println!("{}", s2);
+
+    //Can deep copy to copy heap data also.
+    let s3 = s2.clone();
+
+    println!("s2 = {}, s3 = {}", s2, s3);
+    
+} //variables now out of scope and dropped.
