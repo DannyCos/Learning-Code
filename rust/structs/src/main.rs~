@@ -1,0 +1,60 @@
+struct User {
+    username: String,
+    email: String,
+    sign_in_count: u64,
+    active: bool,
+}
+
+//Tuple structs
+struct Colour(u32, u32, u32);
+struct Point(i32, i32);
+
+fn main() {
+    let mut user1 = User {
+        username: String::from("User 1"),
+        email: String::from("user1@fake.com"),
+        sign_in_count: 1,
+        active: true,
+    };
+
+    user1.active = false;
+
+    let user2 = construct_user(String::from("User 2"), String::from("user2@fake.com"));
+
+    //create instance of user using params from existing user
+
+    let mut user2 = User {
+        username: String::from("User 3"),
+        email: String::from("user3@fake.com"),
+        ..user1
+    };
+
+    let rgb = Colour(255, 255, 255);
+    let point = Point(3, 4);
+}
+
+fn construct_user(username: String, email: String) -> User {
+    User {
+        username,
+        email,
+        sign_in_count: 1,
+        active: false,
+    }
+}
+
+//Example of using structs to find the area of a rectangle
+
+struct Rectangle {
+    width: u32,
+    height: u32,
+}
+
+fn struct_example() {
+
+
+
+    
+
+
+
+}
