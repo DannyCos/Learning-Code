@@ -1,4 +1,4 @@
 build:
-	gcc main.c -o main -ledit -Wall
+	gcc -std=c99 main.c -o main -ledit -Wall
 run:
 	./main
