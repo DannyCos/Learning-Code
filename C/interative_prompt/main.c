@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#define VERSION "0.0001a"
+
 //Compiling on Windows machine
 #ifdef _WIN32
 #include <string.h>
@@ -28,7 +30,7 @@ void add_history(char* unused) {}
 int main(int argc, char** argv) {
 
   /* Print Version and Exit information */
-  puts("Lispy Version 0.0001a");
+  puts("Lispy Version " VERSION);
   puts("Press Ctrl + c to Exit\n");
 
   /* In a never ending loop */
