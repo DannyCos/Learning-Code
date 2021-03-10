@@ -2,9 +2,6 @@
 
 #define VERSION "0.2a"
 
-long eval(mpc_ast_t* t);
-long eval_op(char* op, long x, long y);
-
 #ifdef _WIN32
 #include <string.h>
 
@@ -26,17 +23,79 @@ void add_history(char* unused) {}
 #include <readline/history.h>
 #endif 
 
-long eval(mpc_ast_t* t) {
+typedef struct {
+  int type;
+  long num;
+  int err;
+} lval;
+
+// Enumeration of possible lval 
+enum { LVAL_NUM, LVAL_ERR };
+
+// Enumeration of possible error types
+enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
+
+lval eval(mpc_ast_t* t);
+lval eval_op(char* op, lval x, lval y);
+lval lval_num(long x);
+lval lval_err(int x);
+void lval_print(lval v);
+void lval_println(lval v);
+
+// Creating a new number type lval
+lval lval_num(long x) {
+  lval v;
+  v.type = LVAL_NUM;
+  v.num = x;
+  return v;
+}
+
+// Creating a new error type lval
+lval lval_err(int x) {
+  lval v;
+  v.type = LVAL_ERR;
+  v.err = x;
+  return v;
+}
+
+// Print lval
+void lval_print(lval v) {
+  switch (v.type) {
+    // In case of number type
+  case LVAL_NUM: printf("%li", v.num); break;
+
+    // In case of error type
+  case LVAL_ERR:
+    if (v.err == LERR_DIV_ZERO) {
+      printf("Error: Division by Zero.");
+    }
+    if (v.err == LERR_BAD_OP) {
+      printf("Error: Invalid Operator.");
+    }
+    if (v.err == LERR_BAD_NUM) {
+      printf("Error: Invalid Number.");
+    }
+    break;
+  }
+}
+
+void lval_println(lval v) { lval_print(v); putchar('\n'); }
+    
+
+lval eval(mpc_ast_t* t) {
   // If tagged as number return it directly.
   if (strstr(t -> tag, "number")) {
-    return atof(t -> contents);
+    // Check for error in conversion
+    errno = 0;
+    long x = strtol(t -> contents, NULL, 10);
+    return errno != ERANGE ? lval_num(x) : lval_err(LERR_BAD_NUM);
   }
 
   // The operator is always the second child
   char* op = t -> children[1] -> contents;
 
   // We store the third child in 'x'
-  long x = eval(t -> children[2]);
+  lval x = eval(t -> children[2]);
 
   // Iterate over the remaining children and combining
   int index = 3;
@@ -49,16 +108,25 @@ long eval(mpc_ast_t* t) {
   return x;
 }
 
-long eval_op(char* op, long x, long y) {
-  if (strcmp(op, "+") == 0 || strcmp(op, "add") == 0) { return x + y; }
-  if (strcmp(op, "-") == 0 || strcmp(op, "sub") == 0) { return x - y; }
-  if (strcmp(op, "*") == 0 || strcmp(op, "mul") == 0) { return x * y; }
-  if (strcmp(op, "/") == 0 || strcmp(op, "div") == 0) { return x / y; }
-  if (strcmp(op, "%") == 0 || strcmp(op, "mod") == 0) { return x % y; }
-  if (strcmp(op, "^") == 0) { return pow(x, y); }
-  if (strcmp(op, "min") == 0) { return x < y ? x : y; }
-  if (strcmp(op, "max") == 0) { return x > y ? x : y;}
-  return 0;
+lval eval_op(char* op, lval x, lval y) {
+
+  // If either value is an error, return it
+  if(x.type == LVAL_ERR) { return x; }
+  if(y.type == LVAL_ERR) { return y; }
+
+  if (strcmp(op, "+") == 0 || strcmp(op, "add") == 0) { return lval_num(x.num + y.num); }
+  if (strcmp(op, "-") == 0 || strcmp(op, "sub") == 0) { return lval_num(x.num - y.num); }
+  if (strcmp(op, "*") == 0 || strcmp(op, "mul") == 0) { return lval_num(x.num * y.num); }
+  if (strcmp(op, "/") == 0 || strcmp(op, "div") == 0) {
+    // If second operand is zero, return error.
+    return y.num == 0 ? lval_err(LERR_DIV_ZERO) : lval_num(x.num / y.num);
+  }
+  if (strcmp(op, "%") == 0 || strcmp(op, "mod") == 0) { return lval_num(x.num % y.num); }
+  if (strcmp(op, "^") == 0) { return lval_num(pow(x.num, y.num)); }
+  if (strcmp(op, "min") == 0) { return x.num < y.num ? lval_num(x.num) : lval_num(y.num); }
+  if (strcmp(op, "max") == 0) { return x.num > y.num ? lval_num(x.num) : lval_num(y.num); }
+  
+  return lval_err(LERR_BAD_OP);
 }
 
 int main(int argc, char** argv) {
@@ -90,8 +158,8 @@ int main(int argc, char** argv) {
   
     if (mpc_parse("<stdin>", input, Lispy, &r)) {
       // If successful parse
-      long result = eval(r.output);
-      printf("%li\n", result);
+      lval result = eval(r.output);
+      lval_println(result);
       mpc_ast_delete(r.output);
     } else {
       /* Otherwise print the error */
