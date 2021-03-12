@@ -12,7 +12,7 @@ char* readline(char* prompt) {
   fgets(buffer, 2048, stdin);
   char* cpy = malloc(strlen(buffer)+1);
   strcpy(cpy, buffer);
-  cpy[strlen(cpy)-1) = '\0';
+  cpy[strlen(cpy)-1] = '\0';
   return cpy;
 }
 
@@ -23,9 +23,12 @@ void add_history(char* unused) {}
 #include <readline/history.h>
 #endif 
 
+//Union type stores all memory in same spot, only one element can be used at once, making it useful for structures where only 1 type is used.
+//Struct has seperate memory location for each element, all can be used at once.
+//typdef union {
 typedef struct {
   int type;
-  long num;
+  double num;
   int err;
 } lval;
 
@@ -37,13 +40,13 @@ enum { LERR_DIV_ZERO, LERR_BAD_OP, LERR_BAD_NUM };
 
 lval eval(mpc_ast_t* t);
 lval eval_op(char* op, lval x, lval y);
-lval lval_num(long x);
+lval lval_num(double x);
 lval lval_err(int x);
 void lval_print(lval v);
 void lval_println(lval v);
 
 // Creating a new number type lval
-lval lval_num(long x) {
+lval lval_num(double x) {
   lval v;
   v.type = LVAL_NUM;
   v.num = x;
@@ -62,7 +65,7 @@ lval lval_err(int x) {
 void lval_print(lval v) {
   switch (v.type) {
     // In case of number type
-  case LVAL_NUM: printf("%li", v.num); break;
+  case LVAL_NUM: printf("%f", v.num); break;
 
     // In case of error type
   case LVAL_ERR:
@@ -87,7 +90,7 @@ lval eval(mpc_ast_t* t) {
   if (strstr(t -> tag, "number")) {
     // Check for error in conversion
     errno = 0;
-    long x = strtol(t -> contents, NULL, 10);
+    double x = strtod(t -> contents, NULL);
     return errno != ERANGE ? lval_num(x) : lval_err(LERR_BAD_NUM);
   }
 
@@ -121,7 +124,7 @@ lval eval_op(char* op, lval x, lval y) {
     // If second operand is zero, return error.
     return y.num == 0 ? lval_err(LERR_DIV_ZERO) : lval_num(x.num / y.num);
   }
-  if (strcmp(op, "%") == 0 || strcmp(op, "mod") == 0) { return lval_num(x.num % y.num); }
+  if (strcmp(op, "%") == 0 || strcmp(op, "mod") == 0) { return lval_num(fmod(x.num, y.num)); }
   if (strcmp(op, "^") == 0) { return lval_num(pow(x.num, y.num)); }
   if (strcmp(op, "min") == 0) { return x.num < y.num ? lval_num(x.num) : lval_num(y.num); }
   if (strcmp(op, "max") == 0) { return x.num > y.num ? lval_num(x.num) : lval_num(y.num); }
@@ -140,7 +143,7 @@ int main(int argc, char** argv) {
   /* Define them with the following Language */
   mpca_lang(MPCA_LANG_DEFAULT,
 	    "									\
-	  	number		: /-?[0-9]+/ ;					\
+	  	number		: /-?[0-9]+(\\.[0-9]+)?/ ;					\
 	  	operator 	: '+' | '-' | '*' | '/' | '%' | '^' | \"add\" | \"sub\" | \"mul\" | \"div\" | \"mod\" | \"min\" | \"max\" ; \
 		expr		: <number> | '(' <operator> <expr>+ ')' ;	\
 		lispy		: /^/ <operator> <expr>+ /$/ ;", Number, Operator, Expr, Lispy);
