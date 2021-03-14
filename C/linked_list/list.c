@@ -16,6 +16,19 @@ LinkedList create_linked_list(Node *head) {
   return list;
 }
 
+void reverse_list(LinkedList *list) {
+  Node *current = list->head;
+  Node *prev = NULL;
+  Node *next = NULL;
+  while(current) {
+    next = current->next;
+    current->next = prev;
+    prev = current;
+    current = next;
+  }
+  list->head = prev;
+}
+
 Node *create_node(int data) {
   Node *node = malloc(sizeof(Node));
   node->data = data;
@@ -87,3 +100,4 @@ void print_list(LinkedList *list) {
   }
   printf("\n");
 }
+
