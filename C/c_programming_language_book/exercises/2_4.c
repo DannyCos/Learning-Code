@@ -4,7 +4,7 @@ void squeeze(char*, char*);
 
 int main(int argc, char **argv) {
 
-	/* Fascinatingly enough, declaring the strings used in squeeze(char[], char[])
+	/* Fascinatingly enough, initialising the strings used in squeeze(char[], char[])
 		using a pointer, ie.
 		char *s = "string"; vs char s[] = "string"
 
