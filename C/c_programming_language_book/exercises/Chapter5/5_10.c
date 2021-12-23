@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#define STACK_SIZE 0xF
+#define STACK_SIZE 1024
 
 double s[STACK_SIZE];
 int sp = 0;
@@ -16,8 +16,8 @@ void push(double x) {
 
 int main(int argc, char **argv) {
 	double value;
-	while(argc--) {
-		switch(*argv[argc]) {
+	for (int i = 1; i < argc; ++i) {
+		switch(*argv[i]) {
 		case '\0':
 			break;
 		case '0':
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 		case '7':
 		case '8':
 		case '9':
-			push(atof(argv[argc]));
+			push(atof(argv[i]));
 			break;
 		case '+':
 			push(pop() + pop());
